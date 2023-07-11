@@ -10,29 +10,6 @@ const int y_max = 100;
 std::vector<std::vector<int>> square_grid(x_max, std::vector<int>(y_max, 0));
 
 
-
-/*
-Collapse cell fxn - checks to see if tile is nonzero
-"Collapse"- takes cell that could have one of a number of values and
-"collapses" it onto one, single value.
-*/
-int collapse_cell(int x, int y) {
-	if (square_grid[x][y] != 0) {
-		return square_grid[x][y];
-	}
-	else {
-		std::vector<int> possible_tiles = get_possible_tiles(x,y);
-		int length = possible_tiles.size();
-		int random_index = rand() % (length - 1);
-
-		int tile = possible_tiles[random_index];
-
-		square_grid[x][y] = tile;
-	}
-}
-
-
-
 //Gives tiles that could be neighbours
 std::vector<int> get_possible_tiles(int x, int y) {
 	//Create "neighbours" list.
@@ -69,6 +46,33 @@ std::vector<int> get_possible_tiles(int x, int y) {
 
 }
 
+/*
+Collapse cell fxn - checks to see if tile is nonzero
+"Collapse"- takes cell that could have one of a number of values and
+"collapses" it onto one, single value.
+*/
+int collapse_cell(int x, int y) {
+	if (square_grid[x][y] != 0) {
+		return false;
+	}
+	else {
+		std::vector<int> possible_tiles = get_possible_tiles(x, y);
+
+		if (possible_tiles.empty()) {
+			return false;
+		}
+
+		int length = possible_tiles.size();
+		int random_index = rand() % (length - 1);
+
+		int tile = possible_tiles[random_index];
+
+		square_grid[x][y] = tile;
+		return true;
+	}
+}
+
+
 //Checks to see if any elements in grid are still 0
 bool anyZeros(){
 	for (int i = 0; i < x_max; i++) {
@@ -81,6 +85,18 @@ bool anyZeros(){
 	return false;
 }
 
+
+//Checks to see if there are any collapsed elements in the grid
+bool any_collapsed(){
+	for (int i = 0; i < x_max; i++) {
+		for (int j = 0; j < y_max; j++) {
+			if (square_grid[i][j] != 0) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
 
 
 int main() {
@@ -103,7 +119,10 @@ int main() {
 	}
 
 	//SUBSEQUENT PASSES
-	while (anyZeros()) {
+	//Want to loop continuously if there are any 0-valued, uncollapsed
+	//elements. Also want to make sure the loop isn't indefinitely running
+	//incase none are collapsed.
+	while (anyZeros() && any_collapsed()) {
 		for (int i = 0; i < x_max; i++) {
 			for (int j = 0; j < y_max; j++) {
 				collapse_cell(i, j);
